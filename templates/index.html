@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Content Studio | Generate smarter content with AI</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Marked.js for rendering formatted Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="page-wrapper">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="brand">
+                <div class="brand-icon" aria-hidden="true">
+                    <!-- Professional Document + AI Sparkle SVG Icon -->
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="8" y1="13" x2="16" y2="13"></line>
+                        <line x1="8" y1="17" x2="12" y2="17"></line>
+                        <path d="M18 2v3m0 0v3m0-3h3m-3 0h-3" stroke-width="1.8" stroke="currentColor"></path>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>AI Content Studio</h1>
+                    <p class="tagline">Generate smarter content with AI.</p>
+                </div>
+            </div>
+
+            <div class="header-controls">
+                <span class="badge badge-model">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="m9 12 2 2 4-4"></path>
+                    </svg>
+                    Gemini 3.5 Flash
+                </span>
+
+                {% if not api_key_configured %}
+                <span class="badge badge-warning" id="apiKeyWarningBadge" title="API Key Needed in .env">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    API Key Needed
+                </span>
+                {% else %}
+                <span class="badge badge-success">
+                    <span class="pulse-dot"></span>
+                    API Ready
+                </span>
+                {% endif %}
+
+                <!-- Light / Dark Theme Toggle Button -->
+                <button type="button" class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Light/Dark Theme" aria-label="Toggle theme">
+                    <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+        <!-- Gemini API Notice -->
+        {% if not api_key_configured %}
+        <div class="banner-notice" id="configNoticeBanner">
+            <div class="banner-icon">ℹ️</div>
+            <div class="banner-content">
+                <strong>Gemini API Key Required:</strong> To generate live AI content, add your free Gemini API key to <code>.env</code> as <code>GEMINI_API_KEY=your_key_here</code>. Obtain a free key at <a href="https://aistudio.google.com/" target="_blank" rel="noopener">Google AI Studio</a>.
+            </div>
+            <button type="button" class="banner-close" onclick="document.getElementById('configNoticeBanner').style.display='none'">&times;</button>
+        </div>
+        {% endif %}
+
+        <!-- Global Alert Notification -->
+        <div class="alert-box" id="globalAlert" style="display: none;">
+            <div class="alert-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+            <div class="alert-message" id="globalAlertMessage"></div>
+            <button type="button" class="alert-close" id="alertCloseBtn">&times;</button>
+        </div>
+
+        <!-- Main Content Area: Continuous Single-Page Flow -->
+        <main class="content-flow">
+            <!-- SECTION 1: Content Settings -->
+            <section class="section-settings" aria-labelledby="settingsHeading">
+                <div class="section-header">
+                    <h2 id="settingsHeading">Content Settings</h2>
+                    <p class="section-lead">Configure your topic and generation parameters to craft tailored AI content.</p>
+                </div>
+
+                <form id="generatorForm" class="settings-form" onsubmit="return false;">
+                    <!-- Content Type Field -->
+                    <div class="form-group">
+                        <label for="contentTypeSelect" class="form-label">
+                            Content Type
+                            <span class="required-star">*</span>
+                        </label>
+                        <div class="select-wrapper">
+                            <select id="contentTypeSelect" name="content_type" class="form-select" required>
+                                {% for ct in content_types %}
+                                <option value="{{ ct }}" {% if loop.first %}selected{% endif %}>{{ ct }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Topic / Context Field -->
+                    <div class="form-group">
+                        <div class="label-row">
+                            <label for="topicInput" class="form-label">
+                                Topic / Context
+                                <span class="required-star">*</span>
+                            </label>
+                            <span class="char-hint" id="topicCharCount">0 characters</span>
+                        </div>
+                        <textarea 
+                            id="topicInput" 
+                            name="topic" 
+                            class="form-textarea" 
+                            rows="4" 
+                            placeholder="Enter your topic or describe what you want to create... (e.g. Benefits of Generative AI for students)"
+                            required
+                        ></textarea>
+
+                        <!-- Example Topic Chips -->
+                        <div class="example-topics-wrapper">
+                            <span class="example-label">Try an example topic:</span>
+                            <div class="example-tags">
+                                <button type="button" class="example-tag" data-topic="AI in Education">AI in Education</button>
+                                <button type="button" class="example-tag" data-topic="Future of Generative AI">Future of Generative AI</button>
+                                <button type="button" class="example-tag" data-topic="Benefits of Python">Benefits of Python</button>
+                                <button type="button" class="example-tag" data-topic="Sustainable Technology">Sustainable Technology</button>
+                                <button type="button" class="example-tag" data-topic="Remote Work Trends">Remote Work Trends</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customization Selectors Grid -->
+                    <div class="controls-grid">
+                        <!-- Target Audience -->
+                        <div class="form-group">
+                            <label for="audienceSelect" class="form-label">Target Audience</label>
+                            <div class="select-wrapper">
+                                <select id="audienceSelect" name="audience" class="form-select">
+                                    <option value="General Audience" selected>General Audience</option>
+                                    <option value="Students">Students</option>
+                                    <option value="Developers">Developers</option>
+                                    <option value="Professionals">Professionals</option>
+                                    <option value="Customers">Customers</option>
+                                    <option value="Business Owners">Business Owners</option>
+                                    <option value="Custom">Custom...</option>
+                                </select>
+                            </div>
+                            <input 
+                                type="text" 
+                                id="customAudienceInput" 
+                                class="form-input custom-input" 
+                                placeholder="Specify custom audience..." 
+                                style="display: none; margin-top: 8px;"
+                            >
+                        </div>
+
+                        <!-- Tone -->
+                        <div class="form-group">
+                            <label for="toneSelect" class="form-label">Tone</label>
+                            <div class="select-wrapper">
+                                <select id="toneSelect" name="tone" class="form-select">
+                                    <option value="Professional" selected>Professional</option>
+                                    <option value="Friendly">Friendly</option>
+                                    <option value="Casual">Casual</option>
+                                    <option value="Persuasive">Persuasive</option>
+                                    <option value="Informative">Informative</option>
+                                    <option value="Creative">Creative</option>
+                                    <option value="Formal">Formal</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Length -->
+                        <div class="form-group">
+                            <label for="lengthSelect" class="form-label">Length</label>
+                            <div class="select-wrapper">
+                                <select id="lengthSelect" name="length" class="form-select">
+                                    <option value="Short">Short</option>
+                                    <option value="Medium" selected>Medium</option>
+                                    <option value="Long">Long</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Writing Style -->
+                        <div class="form-group">
+                            <label for="styleSelect" class="form-label">Writing Style</label>
+                            <div class="select-wrapper">
+                                <select id="styleSelect" name="style" class="form-select">
+                                    <option value="Simple">Simple</option>
+                                    <option value="Conversational" selected>Conversational</option>
+                                    <option value="Professional">Professional</option>
+                                    <option value="Storytelling">Storytelling</option>
+                                    <option value="Technical">Technical</option>
+                                    <option value="SEO-friendly">SEO-friendly</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Instructions -->
+                    <div class="form-group">
+                        <label for="instructionsInput" class="form-label">
+                            Additional Instructions 
+                            <span class="optional-tag">(Optional)</span>
+                        </label>
+                        <textarea 
+                            id="instructionsInput" 
+                            name="additional_instructions" 
+                            class="form-textarea form-textarea-sm" 
+                            rows="2" 
+                            placeholder="e.g. Include a real-world example and end with an engaging question."
+                        ></textarea>
+                    </div>
+
+                    <!-- Generate Button -->
+                    <div class="form-actions">
+                        <button type="button" id="generateBtn" class="btn btn-primary btn-generate">
+                            <span class="btn-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                                </svg>
+                            </span>
+                            <span class="btn-text">Generate Content</span>
+                            <span class="btn-spinner" style="display: none;"></span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+            <!-- Loading Indicator -->
+            <div class="loading-state" id="loadingState" style="display: none;">
+                <div class="spinner-ring"></div>
+                <h3 class="loading-title">Creating your content...</h3>
+                <p class="loading-desc">Engineering contextual prompt and consulting Google Gemini.</p>
+            </div>
+
+            <!-- Subtle Section Divider -->
+            <div class="section-divider" id="outputDivider" style="display: none;"></div>
+
+            <!-- SECTION 2: Generated Content (Directly BELOW Settings) -->
+            <section class="section-output" id="outputSection" style="display: none;" aria-labelledby="outputHeading">
+                <div class="output-header-row">
+                    <div>
+                        <h2 id="outputHeading">Generated Content</h2>
+                        <p class="section-lead" id="outputSubtitle">Your AI-generated content</p>
+                    </div>
+
+                    <!-- Actions Toolbar -->
+                    <div class="output-actions" id="outputActions">
+                        <button type="button" id="copyBtn" class="btn btn-action" title="Copy to clipboard">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                            </svg>
+                            <span id="copyBtnText">Copy</span>
+                        </button>
+
+                        <button type="button" id="regenerateBtn" class="btn btn-action" title="Regenerate with same settings">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24L21 7"/>
+                                <path d="M21 3v4h-4"/>
+                            </svg>
+                            <span>Regenerate</span>
+                        </button>
+
+                        <button type="button" id="downloadBtn" class="btn btn-action" title="Download as text file">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            <span>Download</span>
+                        </button>
+
+                        <button type="button" id="clearBtn" class="btn btn-ghost" title="Clear generated content">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 6 6 18"/>
+                                <path d="m6 6 12 12"/>
+                            </svg>
+                            <span>Clear</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Bar -->
+                <div class="metrics-bar" id="metricsBar">
+                    <div class="metric-item">
+                        <span class="metric-label">Words:</span>
+                        <span class="metric-value" id="wordCountBadge">0</span>
+                    </div>
+                    <div class="metric-separator">•</div>
+                    <div class="metric-item">
+                        <span class="metric-label">Characters:</span>
+                        <span class="metric-value" id="charCountBadge">0</span>
+                    </div>
+                    <div class="metric-separator">•</div>
+                    <div class="metric-item">
+                        <span class="metric-label">Type:</span>
+                        <span class="metric-value" id="typeBadge">-</span>
+                    </div>
+                </div>
+
+                <!-- Formatted Output Container -->
+                <div class="content-preview-container" id="contentPreview">
+                    <div class="markdown-output" id="markdownOutput"></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p><strong>AI Content Studio</strong> &bull; Generative AI Mini-Project &bull; Powered by Flask &amp; Google Gemini API</p>
+        </footer>
+    </div>
+
+    <!-- Toast Notification Element -->
+    <div class="toast" id="toastMessage" style="display: none;" role="status">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span id="toastText">Copied!</span>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
