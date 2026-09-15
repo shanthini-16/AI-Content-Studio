@@ -181,7 +181,7 @@ Follow these exact steps in **PowerShell** or **Command Prompt**:
 
 ### 1. Open Terminal and Navigate to Project
 ```powershell
-cd C:\Users\Shanthini\.gemini\antigravity\scratch\AI-Content-Studio
+cd AI-Content-Studio
 ```
 
 ### 2. Create and Activate Virtual Environment
