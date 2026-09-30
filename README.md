@@ -14,9 +14,6 @@ A complete, full-stack Generative AI web application built as an **internship mi
 6. [Project Structure](#-project-structure)
 7. [Installation & Setup (Windows)](#-installation--setup-windows)
 8. [Running the Application](#-running-the-application)
-9. [Interview Q&A Guide](#-interview-qa-guide)
-10. [Future Enhancements](#-future-enhancements)
-
 ---
 
 ## 🌟 Project Overview
@@ -232,32 +229,3 @@ http://127.0.0.1:5050
 
 ---
 
-## 🎤 Interview Q&A Guide
-
-When discussing this project during an internship interview:
-
-**Q1: Why did you separate prompt construction into `prompt_templates.py`?**
-> *"In production Generative AI applications, prompt engineering is software engineering. Hardcoding prompt strings inside route handlers leads to brittle, untestable code. By isolating prompt templates into a dedicated service, we can test prompt logic independently, version-control templates, and adjust instructions without touching Flask routes."*
-
-**Q2: How does the application prevent LLM hallucinations or off-topic outputs?**
-> *"We use role prompting, explicit task boundaries, format-specific structural rules (like H2 headings for blogs or subject lines for emails), and negative constraints (such as 'Do not include conversational filler' and 'Do not mention you are an AI')."*
-
-**Q3: How do you handle security for the API key?**
-> *"The API key is never exposed to the client-side JavaScript. It is stored in `.env`, loaded into memory via `python-dotenv`, and accessed strictly inside the server-side `gemini_service.py`. `.env` is explicitly listed in `.gitignore` to prevent leaking credentials to version control."*
-
-**Q4: Which Gemini model did you use and why?**
-> *"We used `gemini-3.5-flash-lite`. It delivers fast 3-second latency, excellent instruction following, and high reasoning fidelity while remaining cost-effective for high-frequency content generation tasks."*
-
----
-
-## 🔮 Future Enhancements
-
-1. **Server-Sent Events (SSE) / Streaming**: Stream LLM tokens in real-time as they generate.
-2. **User Authentication & Saved History**: SQLite / PostgreSQL integration to let users save past drafts.
-3. **Multi-Model Comparison**: Side-by-side output comparison between `gemini-2.5-flash` and `gemini-2.5-pro`.
-4. **Export to Multiple Formats**: Export directly to PDF or HTML in addition to TXT.
-5. **Multilingual Generation**: Add a target language selector for automated localization.
-
----
-
-**Developed with ❤️ for Generative AI Internship Mini-Project.**
