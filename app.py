@@ -148,11 +148,11 @@ def internal_error(error):
 
 
 if __name__ == "__main__":
-    port = int(os.getenv("FLASK_PORT", 5050))
-    debug = os.getenv("FLASK_DEBUG", "True").lower() in ("true", "1", "yes")
+    port = int(os.environ.get("PORT", os.getenv("FLASK_PORT", 5050)))
+    debug = os.getenv("FLASK_DEBUG", "False").lower() in ("true", "1", "yes")
     print("\n=======================================================")
-    print(f"[*] AI Content Studio is starting on http://127.0.0.1:{port}")
+    print(f"[*] AI Content Studio is starting on port {port}")
     print(f"[*] Gemini API Configured: {is_api_key_configured()}")
     print(f"[*] Active Model: {get_configured_model()}")
     print("=======================================================\n")
-    app.run(host="127.0.0.1", port=port, debug=debug)
+    app.run(host="0.0.0.0", port=port, debug=debug)
